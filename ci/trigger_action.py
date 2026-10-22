@@ -29,10 +29,10 @@ def latest_action_run(repo_owner, event):
     resp.raise_for_status()
     try:
         return resp.json()["workflow_runs"][0]
-    except:
+    except Exception as e:
         print("Couldn't get workflow_runs from:")
         print(json.dumps(resp.json(), indent=4))
-        raise RuntimeError("Stopping")
+        raise RuntimeError("Stopping") from e
 
 
 def dispatch_action(repo_owner, event_type):
