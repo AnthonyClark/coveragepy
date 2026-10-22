@@ -11,6 +11,7 @@ import re
 from collections.abc import Iterable
 from contextlib import chdir
 from typing import Any
+from xml.dom.minidom import getDOMImplementation
 from xml.etree import ElementTree
 
 import pytest
@@ -232,6 +233,31 @@ class XmlReportTest(XmlTestHelpers, CoverageTest):
         dom = ElementTree.parse("coverage.xml")
         elts = dom.findall(".//class[@filename='a??b.py']")
         assert len(elts) == 1
+
+    @pytest.mark.skipif(env.WINDOWS, reason="Windows doesn't allow these characters in file names.")
+    def test_xml_special_characters_match_minidom(self) -> None:
+        name = "a&b<c>d\"e'f"
+        self.make_file(f"{name}/{name}.py", "a = 1\n")
+        self.make_data_file(lines={abs_file(f"{name}/{name}.py"): [1]})
+        cov = coverage.Coverage(source=[name])
+        cov.load()
+        cov.xml_report()
+        with open("coverage.xml", encoding="utf-8") as f:
+            actual = f.read()
+
+        doc = getDOMImplementation().createDocument(None, "x", None)
+        assert doc.documentElement is not None
+        doc.documentElement.setAttribute("a", name)
+        doc.documentElement.appendChild(doc.createTextNode(name))
+        minidom_xml = doc.documentElement.toxml()
+        attr = re.search(r'a="([^"]*)"', minidom_xml)
+        text = re.search(r">(.*)<", minidom_xml)
+        assert attr is not None and text is not None
+        assert f'filename="{attr[1]}.py"' in actual
+        assert f"<source>{abs_file(text[1])}</source>" in actual
+        dom = ElementTree.parse("coverage.xml")
+        assert len(dom.findall(".//class")) == 1
+        assert dom.findall(".//class")[0].get("filename") == f"{name}.py"
 
     def test_reporting_on_nothing(self) -> None:
         # Used to raise a zero division error:
