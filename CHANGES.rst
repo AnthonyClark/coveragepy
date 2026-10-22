@@ -20,8 +20,12 @@ upgrading your version of coverage.py.
     ..  Version 9.8.1 — 2027-07-27
     ..  --------------------------
 
-Unreleased
-----------
+.. start-releases
+
+.. _changes_7-17-0:
+
+Version 7.17.0 — 2026-10-22
+---------------------------
 
 - Dropped support for Python 3.10.
 
@@ -63,9 +67,6 @@ Unreleased
   recorded after the first save. Each save now updates the hash. This had been
   a problem since 7.13.1. Fixes `issue 2338`_.
 
-- Fix: using the C tracer, the refcount of ``None`` was mismanaged during
-  function calls, including comprehensions. This was unlikely to cause an
-  actual problem, but is now fixed. Thanks, Andrew Dalke.
 - Fixes for obscure but legal file names:
 
   - File names (and plugin names) can contain control characters, which are
@@ -115,8 +116,6 @@ Unreleased
 .. _issue 2338: https://github.com/coveragepy/coveragepy/issues/2338
 .. _issue 2344: https://github.com/coveragepy/coveragepy/issues/2344
 
-
-.. start-releases
 
 .. _changes_7-16-2:
 
