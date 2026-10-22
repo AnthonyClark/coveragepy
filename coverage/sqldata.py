@@ -3,6 +3,8 @@
 
 """SQLite coverage data."""
 
+# pragma: enforce 100% coverage
+
 from __future__ import annotations
 
 import base64
