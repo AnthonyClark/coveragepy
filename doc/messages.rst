@@ -187,6 +187,14 @@ Dynamic contexts aren't supported with core=sysmon; context data may be incomple
   dynamic context. Those two features are incompatible. Context data will be
   lost. Change your configuration to use the ctrace core.
 
+.. _warning_no_parallel:
+
+Couldn't analyze files in parallel: XXX (no-parallel)
+  The :ref:`[report] jobs <config_report_jobs>` setting asked for files to be
+  analyzed in more than one process, but the worker processes couldn't be used.
+  The reason is included in the warning message.  The remaining files are
+  analyzed in the main process, so the report is still complete.
+
 
 Disabling warnings
 ------------------

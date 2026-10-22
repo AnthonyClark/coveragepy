@@ -364,7 +364,9 @@ class HtmlReporter:
         # Read the status data and check that this run used the same
         # global data as the last run.
         self.incr.read()
-        self.incr.check_global_data(self.config, self.pyfile_html_source)
+        config = self.config.copy()
+        config.jobs = 1
+        self.incr.check_global_data(config, self.pyfile_html_source)
 
         # Process all the files. For each page we need to supply a link
         # to the next and previous page.

@@ -801,6 +801,24 @@ namespace packages`_, and are usually skipped.
 .. version-added:: 7.0
 
 
+.. _config_report_jobs:
+
+[report] jobs
+.............
+
+(integer or "auto", default 1) The number of processes to use to analyze
+source files while reporting.  Analyzing a file means parsing its source to
+find its statements and branches, which is most of the work of a report on a
+large project.  With 0 or 1, files are analyzed in the main process.  With
+"auto", one process is used for each CPU.
+
+The reports are the same however many processes are used.  Files measured by
+plugins are always analyzed in the main process.  The ``--jobs`` option on the
+reporting commands overrides this setting.
+
+.. version-added:: 7.18
+
+
 .. _config_report_omit:
 
 [report] omit

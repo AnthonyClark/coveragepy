@@ -29,14 +29,32 @@ def analysis_from_file_reporter(
 ) -> Analysis:
     """Create an Analysis from a FileReporter."""
     has_arcs = data.has_arcs()
+    return analysis_from_measurements(
+        precision=precision,
+        file_reporter=file_reporter,
+        filename=filename,
+        has_arcs=has_arcs,
+        lines=data.lines(filename),
+        arcs=data.arcs(filename) if has_arcs else None,
+    )
+
+
+def analysis_from_measurements(
+    precision: int,
+    file_reporter: FileReporter,
+    filename: str,
+    has_arcs: bool,
+    lines: Iterable[TLineNo] | None,
+    arcs: Iterable[TArc] | None,
+) -> Analysis:
+    """Create an Analysis from a FileReporter and its measured lines and arcs."""
     statements = file_reporter.lines()
     excluded = file_reporter.excluded_lines()
-    executed = file_reporter.translate_lines(data.lines(filename) or []) & statements
+    executed = file_reporter.translate_lines(lines or []) & statements
 
     if has_arcs:
         arc_possibilities_set = file_reporter.arcs()
-        arcs: Iterable[TArc] = data.arcs(filename) or []
-        arcs = file_reporter.translate_arcs(arcs)
+        arcs = file_reporter.translate_arcs(arcs or [])
 
         # Reduce the set of arcs to the ones that could be branches.
         dests = collections.defaultdict(set)

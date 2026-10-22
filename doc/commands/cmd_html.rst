@@ -58,6 +58,8 @@ Click the keyboard icon in the upper right to see the complete list.
                             Include only files whose paths match one of these
                             patterns. Accepts shell-style wildcards, which must be
                             quoted.
+      -j N, --jobs=N        Number of processes to use to analyze files, or "auto"
+                            for one per CPU. Overrides the [report] jobs setting.
       --keep-combined       Keep original coverage files, otherwise they are
                             deleted after combining.
       --omit=PAT1,PAT2,...  Omit files whose paths match one of these patterns.
@@ -76,7 +78,7 @@ Click the keyboard icon in the upper right to see the complete list.
       --rcfile=RCFILE       Specify configuration file. By default '.coveragerc',
                             'setup.cfg', 'tox.ini', and 'pyproject.toml' are
                             tried. [env: COVERAGE_RCFILE]
-.. [[[end]]] (sum: PxT3s5PUUO)
+.. [[[end]]] (sum: vZEBNnvcAd)
 
 The title of the report can be set with the ``title`` setting in the
 ``[html]`` section of the configuration file, or the ``--title`` switch on

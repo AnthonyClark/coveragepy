@@ -91,6 +91,7 @@ class ConfigTest(CoverageTest):
             [tool.coverage.report]
             precision = 3
             fail_under = 90.5
+            jobs = 4
             [tool.coverage.html]
             title = "tabblo & «ταБЬℓσ»"
             [tool.coverage.plugins.a_plugin]
@@ -106,6 +107,7 @@ class ConfigTest(CoverageTest):
         assert cov.config.precision == 3
         assert cov.config.html_title == "tabblo & «ταБЬℓσ»"
         assert cov.config.fail_under == 90.5
+        assert cov.config.jobs == 4
         assert cov.config.get_plugin_options("plugins.a_plugin") == {"hello": "world"}
 
     @pytest.mark.parametrize("filename", ["pyproject.toml", ".coveragerc.toml"])
@@ -729,6 +731,7 @@ class ConfigFileTest(UsingModulesMixin, CoverageTest):
                 yet_more
         include = thirty
         precision = 3
+        jobs = auto
 
         partial_branches =
             pragma:?\\s+no branch
@@ -812,6 +815,7 @@ class ConfigFileTest(UsingModulesMixin, CoverageTest):
         assert cov.config.report_omit == ["one", "another", "some_more", "yet_more"]
         assert cov.config.report_include == ["thirty"]
         assert cov.config.precision == 3
+        assert cov.config.jobs == "auto"
 
         assert cov.config.partial_list == [r"pragma:?\s+no branch"]
         assert cov.config.partial_always_list == ["if 0:", "while True:"]

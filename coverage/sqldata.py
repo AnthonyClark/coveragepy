@@ -314,11 +314,12 @@ class CoverageData:
     def keep_db_open(self) -> Iterator[None]:
         """Keep the reporting database connection open for a block."""
         db = self._connect()
+        outermost = db.nest == 0
         try:
             with db:
                 yield
         finally:
-            if not self._no_disk:
+            if outermost and not self._no_disk:
                 self.close(force=True)
 
     def _open_db(self) -> None:

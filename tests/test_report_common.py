@@ -5,10 +5,17 @@
 
 from __future__ import annotations
 
+import os
+import re
 import textwrap
+from unittest import mock
+
+import pytest
 
 import coverage
+from coverage.exceptions import ConfigError, NotPython
 from coverage.files import abs_file
+from coverage.report_core import report_jobs
 from tests.coveragetest import CoverageTest
 from tests.goldtest import contains, doesnt_contain
 from tests.helpers import arcz_to_arcs, os_sep
@@ -299,3 +306,168 @@ class ReportWithJinjaTest(CoverageTest):
             end_of_record
             """)
         assert expected == actual
+
+
+class ReportJobsTest(CoverageTest):
+    """Reports are the same whether files are analyzed in one process or many."""
+
+    def make_project(self, branch: bool) -> None:
+        """Measure a few files, with code that exercises the analysis."""
+        self.make_file(
+            "proj/mod1.py",
+            """\
+            def f(x):
+                if x:
+                    return [
+                        1,
+                        2,
+                    ]
+                with open(__file__) as fh:
+                    for line in fh:
+                        if "never" in line:
+                            break
+                return None
+
+            class C:
+                def m(self, a):
+                    return a if a else -a  # pragma: no branch
+
+            f(1)
+            f(0)
+            """,
+        )
+        self.make_file("proj/sub/mod2.py", "x = 1\nif x:\n    y = 2\nelse:\n    y = 3\n")
+        self.make_file("proj/sub/__init__.py", "")
+        self.make_file("proj/main.py", "import mod1\nimport sub.mod2\n")
+        self.make_file(".coveragerc", f"[run]\nbranch = {branch}\nsource = proj\n")
+        self.run_command("coverage run proj/main.py")
+
+    def make_reports(self, jobs: int) -> dict[str, str]:
+        """Write all the reports with `jobs`, and return their contents."""
+        cov = coverage.Coverage()
+        cov.load()
+        cov.set_option("report:jobs", jobs)
+        with self.assert_warnings(cov, []):
+            with open(f"report{jobs}.txt", "w", encoding="utf-8") as f:
+                cov.report(show_missing=True, file=f)
+            cov.xml_report(outfile=f"cov{jobs}.xml")
+            cov.json_report(outfile=f"cov{jobs}.json", pretty_print=True, show_contexts=True)
+            cov.lcov_report(outfile=f"cov{jobs}.lcov")
+            cov.html_report(directory=f"html{jobs}")
+            cov.annotate(directory=f"ann{jobs}")
+        reports = {}
+        for name in [f"report{jobs}.txt", f"cov{jobs}.xml", f"cov{jobs}.json", f"cov{jobs}.lcov"]:
+            with open(name, encoding="utf-8") as f:
+                text = f.read()
+            text = re.sub(r'timestamp="\d+"|"timestamp": "[^"]+"', "TIMESTAMP", text)
+            reports[name.replace(str(jobs), "")] = text
+        for dirname in [f"html{jobs}", f"ann{jobs}"]:
+            for fname in sorted(os.listdir(dirname)):
+                if fname.endswith((".html", ",cover")):
+                    with open(os.path.join(dirname, fname), encoding="utf-8") as f:
+                        text = f.read()
+                    text = re.sub(r"created at [^<]+", "created at TIME", text)
+                    reports[f"{dirname.replace(str(jobs), '')}/{fname}"] = text
+        return reports
+
+    @pytest.mark.parametrize("branch", [False, True])
+    def test_same_reports(self, branch: bool) -> None:
+        self.make_project(branch)
+        serial = self.make_reports(1)
+        parallel = self.make_reports(2)
+        assert serial.keys() == parallel.keys()
+        assert len(serial) > 10
+        for name, text in serial.items():
+            assert text == parallel[name], f"{name} differs"
+
+    def test_same_reports_with_paths(self) -> None:
+        self.make_file("src/prog.py", "a = 1\nif a:\n    b = 2\nc = 3\n")
+        self.make_data_file(
+            arcs={abs_file("elsewhere/prog.py"): arcz_to_arcs(".1 12 23 34 4.")},
+        )
+        self.make_file(".coveragerc", "[paths]\nsource =\n    src\n    elsewhere\n")
+        assert self.make_reports(1) == self.make_reports(2)
+
+    def make_bad_files(self) -> None:
+        """Make data for files that can't be analyzed, in different ways."""
+        self.make_file("good.py", "a = 1\n")
+        self.make_file("bad.py", "a = (\n")
+        self.make_file("notpy.j2", "This is {{ data }}.\n")
+        self.make_data_file(
+            lines={
+                abs_file("good.py"): [1],
+                abs_file("bad.py"): [1],
+                abs_file("notpy.j2"): [1],
+                abs_file("zmissing.py"): [1],
+            },
+        )
+
+    @pytest.mark.parametrize("jobs", [1, 2])
+    def test_errors(self, jobs: int) -> None:
+        self.make_bad_files()
+        cov = coverage.Coverage()
+        cov.load()
+        cov.set_option("report:jobs", jobs)
+        with pytest.raises(NotPython, match="Couldn't parse '.*bad.py' as Python source"):
+            cov.xml_report()
+
+    @pytest.mark.parametrize("jobs", [1, 2])
+    def test_ignored_errors(self, jobs: int) -> None:
+        self.make_bad_files()
+        cov = coverage.Coverage()
+        cov.load()
+        cov.set_option("report:jobs", jobs)
+        warnings = [
+            r"Couldn't parse Python file '.*bad.py' \(couldnt-parse\)",
+            r"Couldn't parse '.*zmissing.py': No source for code: .* \(couldnt-parse\)",
+        ]
+        with self.assert_warnings(cov, warnings, not_warnings=["no-parallel"]):
+            cov.xml_report(ignore_errors=True)
+        contains("coverage.xml", 'filename="good.py"')
+        doesnt_contain("coverage.xml", "bad.py", "notpy.j2", "zmissing.py")
+
+    @pytest.mark.parametrize(
+        "target, replacement",
+        [
+            (
+                "concurrent.futures.ProcessPoolExecutor.submit",
+                mock.Mock(side_effect=RuntimeError("no processes")),
+            ),
+            ("coverage.report_core._analyze_in_worker", lambda *args: None),
+        ],
+    )
+    def test_no_parallel(self, target: str, replacement: object) -> None:
+        self.make_project(branch=True)
+        cov = coverage.Coverage()
+        cov.load()
+        cov.xml_report(outfile="serial.xml")
+        cov.set_option("report:jobs", 2)
+        warning = r"Couldn't analyze files in parallel: .* \(no-parallel\)"
+        with mock.patch(target, replacement):
+            with self.assert_warnings(cov, [warning]):
+                cov.xml_report(outfile="parallel.xml")
+        with open("serial.xml", encoding="utf-8") as f:
+            serial = re.sub(r'timestamp="\d+"', "", f.read())
+        with open("parallel.xml", encoding="utf-8") as f:
+            parallel = re.sub(r'timestamp="\d+"', "", f.read())
+        assert serial == parallel
+
+    @pytest.mark.parametrize(
+        "jobs, expected",
+        [
+            (0, 1),
+            ("1", 1),
+            (3, 3),
+            ("12", 12),
+            ("auto", os.cpu_count() or 1),
+            (" AUTO ", os.cpu_count() or 1),
+        ],
+    )
+    def test_report_jobs(self, jobs: int | str, expected: int) -> None:
+        assert report_jobs(jobs) == expected
+
+    @pytest.mark.parametrize("jobs", ["-1", -2, "many", "1.5"])
+    def test_bad_jobs(self, jobs: int | str) -> None:
+        msg = r"\[report\] jobs must be 'auto' or a non-negative integer, not"
+        with pytest.raises(ConfigError, match=msg):
+            report_jobs(jobs)

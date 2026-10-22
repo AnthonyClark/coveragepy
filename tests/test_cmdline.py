@@ -1429,6 +1429,31 @@ class CmdLineTest(BaseCmdLineTest):
             """,
         )
 
+    @pytest.mark.parametrize(
+        "cmd, method",
+        [
+            ("annotate", "annotate"),
+            ("html", "html_report"),
+            ("json", "json_report"),
+            ("lcov", "lcov_report"),
+            ("report", "report"),
+            ("xml", "xml_report"),
+        ],
+    )
+    @pytest.mark.parametrize("option", ["-j 4", "--jobs=auto"])
+    def test_jobs(self, cmd: str, method: str, option: str) -> None:
+        jobs = option.replace("=", " ").split()[1]
+        self.cmd_executes(
+            f"{cmd} {option}",
+            f"""\
+            cov = Coverage()
+            cov.load()
+            cov.combine(strict=False, keep=False)
+            cov.set_option("report:jobs", "{jobs}")
+            cov.{method}()
+            """,
+        )
+
     def test_no_arguments_at_all(self) -> None:
         self.cmd_help("", topic="minimum_help", ret=OK)
 
