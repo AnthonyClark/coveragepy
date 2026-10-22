@@ -55,6 +55,8 @@ as a percentage.
                             Include only files whose paths match one of these
                             patterns. Accepts shell-style wildcards, which must be
                             quoted.
+      -j N, --jobs=N        Number of processes to use to analyze files, or "auto"
+                            for one per CPU. Overrides the [report] jobs setting.
       --keep-combined       Keep original coverage files, otherwise they are
                             deleted after combining.
       --omit=PAT1,PAT2,...  Omit files whose paths match one of these patterns.
@@ -74,7 +76,7 @@ as a percentage.
       --rcfile=RCFILE       Specify configuration file. By default '.coveragerc',
                             'setup.cfg', 'tox.ini', and 'pyproject.toml' are
                             tried. [env: COVERAGE_RCFILE]
-.. [[[end]]] (sum: sb/XFbnNDy)
+.. [[[end]]] (sum: EnEGn42ax6)
 
 The ``-m`` flag also shows the line numbers of missing statements::
 

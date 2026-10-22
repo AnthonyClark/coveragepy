@@ -140,6 +140,11 @@ class PythonParser:
 
         self._first_line_cache: dict[TLineNo, TLineNo] = {}
 
+    def __getstate__(self) -> dict[str, object]:
+        state = self.__dict__.copy()
+        state["_ast_root"] = None
+        return state
+
     def lines_matching(self, regex: str) -> set[TLineNo]:
         """Find the lines matching a regex.
 
@@ -347,7 +352,8 @@ class PythonParser:
         `_all_arcs` is the set of arcs in the code.
 
         """
-        assert self._ast_root is not None
+        if self._ast_root is None:
+            self._ast_root = ast.parse(self.text)
         aaa = AstArcAnalyzer(self.filename, self._ast_root, self.raw_statements, self.multiline_map)
         aaa.analyze()
         arcs = aaa.arcs

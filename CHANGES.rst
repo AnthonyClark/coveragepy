@@ -23,9 +23,16 @@ upgrading your version of coverage.py.
 Unreleased
 ----------
 
+- Reporting can analyze source files in more than one process with the new
+  :ref:`[report] jobs <config_report_jobs>` setting or the ``--jobs`` option.
+  On large projects this can make reports several times faster.  The default
+  is still one process.  Closes `issue 1504`_.
+
 - Performance: the XML report is written directly instead of being built as a
   DOM tree first, which takes about a third less time on large projects.  The
   output is unchanged.
+
+.. _issue 1504: https://github.com/coveragepy/coveragepy/issues/1504
 
 
 .. start-releases

@@ -167,6 +167,18 @@ class Opts:
         action="store_true",
         help="Ignore errors while reading source files.",
     )
+    jobs = optparse.make_option(
+        "-j",
+        "--jobs",
+        action="store",
+        metavar="N",
+        help=prep_help(
+            """
+            Number of processes to use to analyze files, or "auto" for one per
+            CPU. Overrides the [report] jobs setting.
+            """
+        ),
+    )
     include = optparse.make_option(
         "",
         "--include",
@@ -406,6 +418,7 @@ class CoverageOptionParser(optparse.OptionParser):
             help=None,
             ignore_errors=None,
             include=None,
+            jobs=None,
             keep=None,
             keep_combined=None,
             module=None,
@@ -540,6 +553,7 @@ COMMANDS = {
             Opts.datafile_input,
             Opts.ignore_errors,
             Opts.include,
+            Opts.jobs,
             Opts.keep_combined,
             Opts.omit,
         ]
@@ -613,6 +627,7 @@ COMMANDS = {
             Opts.fail_under,
             Opts.ignore_errors,
             Opts.include,
+            Opts.jobs,
             Opts.keep_combined,
             Opts.omit,
             Opts.precision,
@@ -641,6 +656,7 @@ COMMANDS = {
             Opts.fail_under,
             Opts.ignore_errors,
             Opts.include,
+            Opts.jobs,
             Opts.keep_combined,
             Opts.omit,
             Opts.output_json,
@@ -659,6 +675,7 @@ COMMANDS = {
             Opts.fail_under,
             Opts.ignore_errors,
             Opts.include,
+            Opts.jobs,
             Opts.keep_combined,
             Opts.output_lcov,
             Opts.omit,
@@ -677,6 +694,7 @@ COMMANDS = {
             Opts.format,
             Opts.ignore_errors,
             Opts.include,
+            Opts.jobs,
             Opts.keep_combined,
             Opts.omit,
             Opts.precision,
@@ -718,6 +736,7 @@ COMMANDS = {
             Opts.fail_under,
             Opts.ignore_errors,
             Opts.include,
+            Opts.jobs,
             Opts.keep_combined,
             Opts.omit,
             Opts.output_xml,
@@ -885,6 +904,9 @@ class CoverageScript:
 
         self.coverage.load()
         self.coverage.combine(strict=False, keep=bool(options.keep_combined))
+
+        if options.jobs is not None:
+            self.coverage.set_option("report:jobs", options.jobs)
 
         total = None
         if options.action == "report":

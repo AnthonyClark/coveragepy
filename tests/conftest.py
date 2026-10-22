@@ -11,6 +11,7 @@ This module is run automatically by pytest, to define and enable fixtures.
 
 from __future__ import annotations
 
+import concurrent.futures.process
 import os
 import sys
 import warnings
@@ -83,6 +84,21 @@ def reset_sys_path() -> Iterable[None]:
     sys_path = list(sys.path)
     yield
     sys.path[:] = sys_path
+
+
+@pytest.fixture(autouse=True)
+def reset_main_module() -> Iterable[None]:
+    """Running a program in-process replaces __main__. Put it back.
+
+    Parallel reporting starts worker processes that import __main__, and
+    pickles functions from concurrent.futures.process, which must not be
+    re-imported by a test.
+
+    """
+    assert concurrent.futures.process
+    main_module = sys.modules["__main__"]
+    yield
+    sys.modules["__main__"] = main_module
 
 
 @pytest.fixture(autouse=True)

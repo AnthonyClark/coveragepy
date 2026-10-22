@@ -228,6 +228,7 @@ class CoverageConfig(TConfigurable, TPluginConfig):
         self.format: str | None = None
         self.ignore_errors = False
         self.include_namespace_packages = False
+        self.jobs: int | str = 1
         self.report_include: list[str] | None = None
         self.report_omit: list[str] | None = None
         self.partial_always_list = DEFAULT_PARTIAL_ALWAYS[:]
@@ -441,6 +442,7 @@ class CoverageConfig(TConfigurable, TPluginConfig):
         ("format", "report:format"),
         ("ignore_errors", "report:ignore_errors", "boolean"),
         ("include_namespace_packages", "report:include_namespace_packages", "boolean"),
+        ("jobs", "report:jobs"),
         ("partial_always_list", "report:partial_branches_always", "regexlist"),
         ("partial_list", "report:partial_branches", "regexlist"),
         ("partial_also", "report:partial_also", "regexlist"),

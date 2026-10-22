@@ -39,6 +39,8 @@ compatible with `Cobertura`_.
                             Include only files whose paths match one of these
                             patterns. Accepts shell-style wildcards, which must be
                             quoted.
+      -j N, --jobs=N        Number of processes to use to analyze files, or "auto"
+                            for one per CPU. Overrides the [report] jobs setting.
       --keep-combined       Keep original coverage files, otherwise they are
                             deleted after combining.
       --omit=PAT1,PAT2,...  Omit files whose paths match one of these patterns.
@@ -53,7 +55,7 @@ compatible with `Cobertura`_.
       --rcfile=RCFILE       Specify configuration file. By default '.coveragerc',
                             'setup.cfg', 'tox.ini', and 'pyproject.toml' are
                             tried. [env: COVERAGE_RCFILE]
-.. [[[end]]] (sum: 6i8iwXIv4S)
+.. [[[end]]] (sum: Hxogmj+Bpu)
 
 You can specify the name of the output file with the ``-o`` switch.
 

@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import ast
+import pickle
 import re
 import textwrap
 import tokenize
@@ -36,6 +37,19 @@ class PythonParserTestBase(CoverageTest):
 
 class PythonParserTest(PythonParserTestBase):
     """Tests of coverage.parser."""
+
+    def test_pickle(self) -> None:
+        parser = self.parse_text("""\
+            def f(a):
+                if a:
+                    return 3
+                return 4
+            """)
+        unpickled = pickle.loads(pickle.dumps(parser))
+        assert unpickled._ast_root is None
+        assert unpickled.statements == parser.statements
+        assert unpickled.arcs() == parser.arcs()
+        assert unpickled.exit_counts() == parser.exit_counts()
 
     def test_exit_counts(self) -> None:
         parser = self.parse_text("""\
