@@ -114,6 +114,10 @@ class PYBEHAVIOR:
     # PEP649 and PEP749: Deferred annotations
     deferred_annotations = (PYVERSION >= (3, 14))  # fmt: skip
 
+    # Does xml.dom.minidom escape quotes in text, and only &<>" in attributes?
+    # https://github.com/python/cpython/issues/50002
+    minidom_quotes_text = (PYVERSION < (3, 13))  # fmt: skip
+
     # Does sys.monitoring support BRANCH_RIGHT and BRANCH_LEFT?  The names
     # were added in early 3.14 alphas, but didn't work entirely correctly until
     # after 3.14.0a5.

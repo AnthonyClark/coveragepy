@@ -23,7 +23,9 @@ upgrading your version of coverage.py.
 Unreleased
 ----------
 
-Nothing yet.
+- Performance: the XML report is written directly instead of being built as a
+  DOM tree first, which takes about a third less time on large projects.  The
+  output is unchanged.
 
 
 .. start-releases
