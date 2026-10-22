@@ -104,6 +104,8 @@ Unreleased
 
 - Performance: HTML reports should be about 5% faster to produce.
 
+- Kept the political banner in the README. Closes `issue 2344`_.
+
 .. _issue 1987: https://github.com/coveragepy/coveragepy/issues/1987
 .. _issue 2277: https://github.com/coveragepy/coveragepy/issues/2277
 .. _issue 2293: https://github.com/coveragepy/coveragepy/issues/2293
@@ -111,6 +113,7 @@ Unreleased
 .. _issue 2314: https://github.com/coveragepy/coveragepy/issues/2314
 .. _issue 2335: https://github.com/coveragepy/coveragepy/issues/2335
 .. _issue 2338: https://github.com/coveragepy/coveragepy/issues/2338
+.. _issue 2344: https://github.com/coveragepy/coveragepy/issues/2344
 
 
 .. start-releases
